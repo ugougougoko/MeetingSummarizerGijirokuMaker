@@ -1,0 +1,58 @@
+<!DOCTYPE html>  
+<html lang="en">  
+<head>  
+  <meta charset="UTF-8">  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+  <title>GIJIROKU</title>  
+</head>  
+<body>  
+  <h1>GIJIROKU</h1>  
+  <input type="file" id="vttFile" accept=".vtt,.txt">  
+  <button id="gijirokuButton">議事録を作成</button>  
+  <h2>進捗: <span id="progress">0</span>%</h2>  
+  <h2>作成した議事録:</h2>  
+  <textarea id="result" rows="15" cols="120" wrap="soft" readonly style="white-space: pre-wrap; overflow-wrap: break-word;"></textarea>  
+
+  <script src="/socket.io/socket.io.js"></script>  
+  <script>  
+    const socket = io();  
+    const vttFileInput = document.getElementById('vttFile');  
+    const gijirokuButton = document.getElementById('gijirokuButton');  
+    const progressElement = document.getElementById('progress');  
+    const resultElement = document.getElementById('result');  
+    
+    // サマライズボタンのクリックイベントをリッスン  
+    gijirokuButton.addEventListener('click', () => {  
+      const vttFile = vttFileInput.files[0];  
+      if (!vttFile) {  
+        alert('ファイルを選択してください。');  
+        return;  
+      }  
+    
+      const reader = new FileReader();  
+      reader.onload = (e) => {  
+        const vttContent = e.target.result;  
+        console.log('クライアント側のファイル内容:', vttContent); // デバッグ用  
+        socket.emit('start_summarization', vttContent);  
+      };  
+      reader.onerror = (e) => {  
+        console.error('ファイルの読み込みに失敗しました:', e);  
+      };  
+      reader.readAsText(vttFile, 'UTF-8');  
+    
+      gijirokuButton.disabled = true;  
+    });  
+    
+    // サーバーからの進捗イベントをリッスン  
+    socket.on('progress', (data) => {  
+      progressElement.textContent = data;  
+    });  
+
+    // サーバーからの完了イベントをリッスン  
+    socket.on('completed', (data) => {  
+      resultElement.textContent = data;  
+      gijirokuButton.disabled = false;  
+    });  
+  </script>  
+</body>  
+</html>  
