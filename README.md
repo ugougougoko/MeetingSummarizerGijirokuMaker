@@ -1,0 +1,2 @@
+# MeetingSummarizerGijirokuMaker
+AzureOpenAIを活用して、会議のトランスクリプトから議事録を作成するアプリです。
